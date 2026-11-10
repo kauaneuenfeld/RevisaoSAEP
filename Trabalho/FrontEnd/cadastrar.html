@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="utf-8"><title>Cadastrar</title></head>
+<body>
+<div id="topo"></div>
+
+<h2>Cadastrar aluno</h2>
+<p>Nome: <input id="a_nome"></p>
+<p>CPF (11 números): <input id="a_cpf" maxlength="11"></p>
+<p>E-mail: <input id="a_email"></p>
+<p>Telefone: <input id="a_telefone"></p>
+<button onclick="salvarAluno()">Cadastrar aluno</button>
+<p id="erro_aluno" style="color:red"></p>
+
+<hr>
+
+<h2>Cadastrar plano de treino</h2>
+<p>Nome: <input id="p_nome"></p>
+<p>Objetivo: <input id="p_objetivo"></p>
+<p>Descrição: <input id="p_descricao"></p>
+<p>Aluno: <select id="p_aluno"></select></p>
+<button onclick="salvarPlano()">Cadastrar plano</button>
+<p id="erro_plano" style="color:red"></p>
+
+<h3>Planos cadastrados</h3>
+<table border="1">
+<thead><tr><th>Plano</th><th>Objetivo</th><th>Descrição</th><th>Aluno</th></tr></thead>
+<tbody id="lista"></tbody>
+</table>
+
+<script src="script.js"></script>
+<script>
+cabecalho();
+async function carregar() {
+  const alunos = await api('/api/alunos');
+  document.getElementById('p_aluno').innerHTML =
+    '<option value="">Selecione</option>' + alunos.map(a => '<option value="' + a.id + '">' + a.nome + '</option>').join('');
+  const planos = await api('/api/planos');
+  document.getElementById('lista').innerHTML = planos.map(p =>
+    '<tr><td>' + p.nome + '</td><td>' + (p.objetivo || '') + '</td><td>' + (p.descricao || '') + '</td><td>' + p.aluno_nome + '</td></tr>'
+  ).join('');
+}
+async function salvarAluno() {
+  const d = {
+    nome: document.getElementById('a_nome').value.trim(),
+    cpf: document.getElementById('a_cpf').value.trim(),
+    email: document.getElementById('a_email').value.trim(),
+    telefone: document.getElementById('a_telefone').value.trim()
+  };
+  const erro = document.getElementById('erro_aluno');
+  if (!d.nome || d.cpf.length !== 11) { erro.textContent = 'Informe o nome e um CPF com 11 números'; return; }
+  try {
+    await api('/api/alunos', 'POST', d);
+    erro.textContent = '';
+    for (const c of ['a_nome', 'a_cpf', 'a_email', 'a_telefone']) document.getElementById(c).value = '';
+    carregar();
+  } catch (e) { erro.textContent = e.message; }
+}
+async function salvarPlano() {
+  const d = {
+    nome: document.getElementById('p_nome').value.trim(),
+    objetivo: document.getElementById('p_objetivo').value.trim(),
+    descricao: document.getElementById('p_descricao').value.trim(),
+    aluno_id: document.getElementById('p_aluno').value
+  };
+  const erro = document.getElementById('erro_plano');
+  if (!d.nome || !d.aluno_id) { erro.textContent = 'Informe o nome e selecione um aluno'; return; }
+  try {
+    await api('/api/planos', 'POST', d);
+    erro.textContent = '';
+    for (const c of ['p_nome', 'p_objetivo', 'p_descricao', 'p_aluno']) document.getElementById(c).value = '';
+    carregar();
+  } catch (e) { erro.textContent = e.message; }
+}
+carregar();
+</script>
+</body>
+</html>

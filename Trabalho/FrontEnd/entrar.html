@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="utf-8"><title>Entrar</title></head>
+<body>
+<h2>Login</h2>
+<p>Login: <input id="login"></p>
+<p>Senha: <input id="senha" type="password"></p>
+<button onclick="entrar()">Entrar</button>
+<p id="erro" style="color:red"></p>
+<script src="script.js"></script>
+<script>
+async function entrar() {
+  const login = document.getElementById('login').value.trim();
+  const senha = document.getElementById('senha').value;
+  const erro = document.getElementById('erro');
+  if (!login || !senha) { erro.textContent = 'Preencha login e senha'; return; }
+  try {
+    await api('/api/login', 'POST', { login, senha });
+    location.href = 'index.html';
+  } catch (e) { erro.textContent = e.message; }
+}
+</script>
+</body>
+</html>

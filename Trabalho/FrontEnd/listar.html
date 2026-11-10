@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="utf-8"><title>Alunos</title></head>
+<body>
+<div id="topo"></div>
+<h2>Alunos</h2>
+<input id="busca" placeholder="Buscar por nome">
+<button onclick="listar()">Buscar</button>
+<a href="cadastrar.html">Novo aluno</a>
+<p id="erro" style="color:red"></p>
+<table border="1">
+<thead><tr><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Ações</th></tr></thead>
+<tbody id="lista"></tbody>
+</table>
+<script src="script.js"></script>
+<script>
+cabecalho();
+async function listar() {
+  const alunos = await api('/api/alunos?busca=' + encodeURIComponent(document.getElementById('busca').value));
+  document.getElementById('lista').innerHTML = alunos.map(a =>
+    '<tr><td>' + a.nome + '</td><td>' + a.cpf + '</td><td>' + (a.email || '') + '</td><td>' + (a.telefone || '') +
+    '</td><td><a href="editar.html?id=' + a.id + '">Editar</a> <button onclick="excluir(' + a.id + ')">Excluir</button></td></tr>'
+  ).join('');
+}
+async function excluir(id) {
+  if (!confirm('Excluir este aluno?')) return;
+  try { await api('/api/alunos/' + id, 'DELETE'); listar(); }
+  catch (e) { document.getElementById('erro').textContent = e.message; }
+}
+listar();
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="utf-8"><title>Agendamentos</title></head>
+<body>
+<div id="topo"></div>
+<h2>Agendamentos (ordenados por data)</h2>
+<p id="erro" style="color:red"></p>
+<table border="1">
+<thead><tr><th>Data da aula</th><th>Aluno</th><th>CPF</th><th>E-mail</th><th>Telefone</th><th>Plano</th><th>Objetivo</th><th>Descrição</th><th>Alterar data</th></tr></thead>
+<tbody id="lista"></tbody>
+</table>
+<script src="script.js"></script>
+<script>
+cabecalho();
+async function listar() {
+  const ag = await api('/api/agendamentos');
+  document.getElementById('lista').innerHTML = ag.map(g =>
+    '<tr><td>' + g.data_aula + '</td><td>' + g.aluno_nome + '</td><td>' + g.aluno_cpf + '</td><td>' + (g.aluno_email || '') +
+    '</td><td>' + (g.aluno_telefone || '') + '</td><td>' + g.plano_nome + '</td><td>' + (g.plano_objetivo || '') +
+    '</td><td>' + (g.plano_descricao || '') + '</td><td><input type="datetime-local" id="d' + g.id + '" value="' + paraInput(g.data_aula) +
+    '"> <button onclick="atualizar(' + g.id + ')">Salvar</button></td></tr>'
+  ).join('');
+}
+async function atualizar(id) {
+  const v = document.getElementById('d' + id).value;
+  if (!v) { document.getElementById('erro').textContent = 'Informe a data'; return; }
+  try {
+    await api('/api/agendamentos/' + id, 'PUT', { data_aula: v.replace('T', ' ') + ':00' });
+    document.getElementById('erro').textContent = '';
+    listar();
+  } catch (e) { document.getElementById('erro').textContent = e.message; }
+}
+listar();
+</script>
+</body>
+</html>
